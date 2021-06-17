@@ -1250,6 +1250,72 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 
 /***************************************************************************************
 ** Function name:           pushImage
+** Description:             plot 16 bit sprite or image with full alpha channel
+***************************************************************************************/
+void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint8_t *alpha, uint16_t bgcolor)
+{
+  PI_CLIP;
+
+  begin_tft_write();
+  inTransaction = true;
+
+  data += dx + dy * w;
+  transp += dx + dy * w;
+
+  int32_t xe = x + dw - 1, ye = y + dh - 1;
+
+  uint16_t  lineBuf[dw]; // Use buffer to minimise setWindow call count
+
+  while (dh--)
+  {
+    int32_t len = dw;
+    uint16_t* ptr = data;
+    uint8_t* alphaPtr = alpha;
+    int32_t px = x;
+    bool move = true;
+    uint16_t np = 0;
+
+    while (len--)
+    {
+      if (*alphaPtr == 255)
+      {
+        if (move) { move = false; setWindow(px, y, xe, ye); }
+        lineBuf[np] = *ptr;
+        np++;
+      }
+      else if ( *alphaPtr != 0 )
+      {
+        // TODO: Blend the color with the backgorund color
+        if (move) { move = false; setWindow(px, y, xe, ye); }
+        lineBuf[np] = alphaBlend(*alpha,*ptr,bgcolor);
+        np++;
+      }
+      else
+      {
+        move = true;
+        if (np)
+        {
+           pushPixels((uint16_t*)lineBuf, np);
+           np = 0;
+        }
+      }
+      px++;
+      ptr++;
+      alpha++;
+    }
+    if (np) pushPixels((uint16_t*)lineBuf, np);
+
+    y++;
+    data += w;
+    transp += w;
+  }
+
+  inTransaction = lockTransaction;
+  end_tft_write();
+}
+
+/***************************************************************************************
+** Function name:           pushImage
 ** Description:             plot 16 bit sprite or image with 1 colour being transparent
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transp)
@@ -1331,6 +1397,68 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
       buffer[j] = pgm_read_word(&data[i * w + j]);
     }
     pushPixels(buffer, dw);
+  }
+
+  inTransaction = lockTransaction;
+  end_tft_write();
+}
+
+/***************************************************************************************
+** Function name:           pushImage - for FLASH (PROGMEM) stored images
+** Description:             plot 16 bit sprite or image with full alpha channel
+***************************************************************************************/
+void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, const uint8_t *alpha, uint16_t bgcolor)
+{
+  // Requires 32 bit aligned access, so use PROGMEM 16 bit word functions
+  PI_CLIP;
+
+  begin_tft_write();
+  inTransaction = true;
+
+  data += dx + dy * w;
+
+  int32_t xe = x + dw - 1, ye = y + dh - 1;
+
+  uint16_t  lineBuf[dw];
+
+  while (dh--) {
+    int32_t len = dw;
+    uint16_t* ptr = (uint16_t*)data;
+    uint8_t* alphaPtr = (uint8_t*)alpha;
+    int32_t px = x;
+    bool move = true;
+
+    uint16_t np = 0;
+
+    while (len--) {
+      uint16_t color = pgm_read_word(ptr);
+      if (*alphaPtr == 255) {
+        if (move) { move = false; setWindow(px, y, xe, ye); }
+        lineBuf[np] = color;
+        np++;
+      }
+      else if ( *alpahPtr != 0 )
+      {
+        // TODO: Blend color with background
+        if (move) { move = false; setWindow(px, y, xe, ye); }
+        lineBuf[np] = color;
+        np++;
+      }
+      else {
+        move = true;
+        if (np) {
+           pushPixels(lineBuf, np);
+           np = 0;
+        }
+      }
+      px++;
+      ptr++;
+    }
+    if (np) pushPixels(lineBuf, np);
+
+    y++;
+    data += w;
+    alpha += w;
   }
 
   inTransaction = lockTransaction;
