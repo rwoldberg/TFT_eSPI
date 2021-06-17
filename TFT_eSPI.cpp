@@ -1260,7 +1260,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
   inTransaction = true;
 
   data += dx + dy * w;
-  transp += dx + dy * w;
+  alpha += dx + dy * w;
 
   int32_t xe = x + dw - 1, ye = y + dh - 1;
 
@@ -1416,6 +1416,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
   inTransaction = true;
 
   data += dx + dy * w;
+  alpha += dx + dy * w;
 
   int32_t xe = x + dw - 1, ye = y + dh - 1;
 
