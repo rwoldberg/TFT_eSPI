@@ -1409,14 +1409,14 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, const uint8_t *alpha, uint16_t bgcolor)
 {
-  // Requires 32 bit aligned access, so use PROGMEM 16 bit word functions
+    // Requires 32 bit aligned access, so use PROGMEM 16 bit word functions
   PI_CLIP;
 
   begin_tft_write();
   inTransaction = true;
 
   data += dx + dy * w;
-  alpha += dx + dy * w;
+  alpah += dx + dy * w;
 
   int32_t xe = x + dw - 1, ye = y + dh - 1;
 
@@ -1425,7 +1425,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
   while (dh--) {
     int32_t len = dw;
     uint16_t* ptr = (uint16_t*)data;
-    uint8_t* alphaPtr = (uint8_t*)alpha;
+    uint8_t* ptrAlpha = (uint8_t*)alpha;
     int32_t px = x;
     bool move = true;
 
@@ -1433,14 +1433,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 
     while (len--) {
       uint16_t color = pgm_read_word(ptr);
-      if (*alphaPtr == 255) {
-        if (move) { move = false; setWindow(px, y, xe, ye); }
-        lineBuf[np] = color;
-        np++;
-      }
-      else if ( *alphaPtr != 0 )
-      {
-        // TODO: Blend color with background
+      if (*ptrAlpha == 0xff) {
         if (move) { move = false; setWindow(px, y, xe, ye); }
         lineBuf[np] = color;
         np++;
@@ -1454,6 +1447,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
       }
       px++;
       ptr++;
+      ptrAlpha++;
     }
     if (np) pushPixels(lineBuf, np);
 
