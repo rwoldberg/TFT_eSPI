@@ -1266,6 +1266,9 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 
   uint16_t  lineBuf[dw]; // Use buffer to minimise setWindow call count
 
+  // The little endian bg color must be byte swapped if the image is big endian
+  if (!_swapBytes) bgcolor = bgcolor >> 8 | bgcolor << 8;
+
   while (dh--)
   {
     int32_t len = dw;
@@ -1421,7 +1424,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 
   uint16_t  lineBuf[dw];
 
-  // The little endian transp color must be byte swapped if the image is big endian
+  // The little endian bg color must be byte swapped if the image is big endian
   if (!_swapBytes) bgcolor = bgcolor >> 8 | bgcolor << 8;
 
   while (dh--) {
@@ -1436,18 +1439,19 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
     while (len--) {
       uint16_t color = pgm_read_word(ptr);
       uint8_t a = pgm_read_byte(ptrAlpha);
-      /*if (a == 255) {
+      if (a == 255) {
         if (move) { move = false; setWindow(px, y, xe, ye); }
         lineBuf[np] = color;
         np++;
       }
-      else if( a != 0 )
-      {*/
+      else /*if( a != 0 )*/
+      {
         // Combine color with background using alpha value 
         if (move) { move = false; setWindow(px, y, xe, ye); }
         lineBuf[np] = alphaBlend(a,color,bgcolor);
         np++;
-      /*}
+      }
+      /*
       else {
         move = true;
         if (np) {
