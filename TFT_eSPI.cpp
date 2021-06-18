@@ -1433,25 +1433,25 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
     while (len--) {
       uint16_t color = pgm_read_word(ptr);
       uint8_t A = pgm_read_byte(ptrAlpha);
-      if (A == 255) {
+      /*if (A == 255) {
         if (move) { move = false; setWindow(px, y, xe, ye); }
         lineBuf[np] = color;
         np++;
       }
       else if( A != 0 )
-      {
+      {*/
         // Combine color with background with alpha value 
         if (move) { move = false; setWindow(px, y, xe, ye); }
         lineBuf[np] = alphaBlend(A,color,bgcolor);
         np++;
-      }
+      /*}
       else {
         move = true;
         if (np) {
            pushPixels(lineBuf, np);
            np = 0;
         }
-      }
+      }*/
       px++;
       ptr++;
       ptrAlpha++;
