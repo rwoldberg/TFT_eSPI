@@ -1433,7 +1433,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 
     while (len--) {
       uint16_t color = pgm_read_word(ptr);
-      if (*ptrAlpha == 0xff) {
+      if (color != 0) {
         if (move) { move = false; setWindow(px, y, xe, ye); }
         lineBuf[np] = color;
         np++;
