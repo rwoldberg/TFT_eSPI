@@ -1421,6 +1421,9 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 
   uint16_t  lineBuf[dw];
 
+  // The little endian transp color must be byte swapped if the image is big endian
+  if (!_swapBytes) bgcolor = bgcolor >> 8 | bgcolor << 8;
+
   while (dh--) {
     int32_t len = dw;
     uint16_t* ptr = (uint16_t*)data;
@@ -1432,17 +1435,17 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 
     while (len--) {
       uint16_t color = pgm_read_word(ptr);
-      uint8_t A = pgm_read_byte(ptrAlpha);
-      /*if (A == 255) {
+      uint8_t a = pgm_read_byte(ptrAlpha);
+      /*if (a == 255) {
         if (move) { move = false; setWindow(px, y, xe, ye); }
         lineBuf[np] = color;
         np++;
       }
-      else if( A != 0 )
+      else if( a != 0 )
       {*/
-        // Combine color with background with alpha value 
+        // Combine color with background using alpha value 
         if (move) { move = false; setWindow(px, y, xe, ye); }
-        lineBuf[np] = alphaBlend(A,color,bgcolor);
+        lineBuf[np] = alphaBlend(a,color,bgcolor);
         np++;
       /*}
       else {
