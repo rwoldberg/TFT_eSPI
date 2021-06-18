@@ -1441,7 +1441,6 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
       else if( A != 0 )
       {
         // Combine color with background with alpha value 
-        r = ( ( r * A ) / 255  ) + ( ( bg_r * ( 255 - A) ) / 255 );
         if (move) { move = false; setWindow(px, y, xe, ye); }
         lineBuf[np] = alphaBlend(A,color,bgcolor);
         np++;
