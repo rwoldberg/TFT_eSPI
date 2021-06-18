@@ -1307,7 +1307,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 
     y++;
     data += w;
-    transp += w;
+    alpha += w;
   }
 
   inTransaction = lockTransaction;
@@ -1438,7 +1438,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
         lineBuf[np] = color;
         np++;
       }
-      else if ( *alpahPtr != 0 )
+      else if ( *alphaPtr != 0 )
       {
         // TODO: Blend color with background
         if (move) { move = false; setWindow(px, y, xe, ye); }
